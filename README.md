@@ -41,3 +41,7 @@ Falta executar o SQL e validar o projeto real, configurar contas, hospedar com H
 ## Endereço de acesso
 
 Configuração de publicação com Gunicorn em `render.yaml`; siga [PUBLICAR.md](PUBLICAR.md). O endereço HTTPS será gerado pela hospedagem após a implantação. A preparação local não publicou o serviço.
+
+## Instalar como aplicativo
+
+A interface é uma PWA instalável no computador, Android e iPhone. Instruções em [INSTALAR.md](INSTALAR.md). Necessita da versão atual publicada com HTTPS. O service worker não armazena dados privados nem oferece gravação offline; as informações continuam no Supabase.

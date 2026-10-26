@@ -38,7 +38,15 @@ button:focus-visible{outline:3px solid #8caafa;outline-offset:3px}
 @media(max-width:1050px){header{width:210px;padding-left:20px}nav{width:180px}main{margin-left:210px;padding:24px}.metrics{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){header{position:relative;width:100%;height:auto;padding:18px 20px;border-right:0;border-bottom:1px solid var(--ln)}header h1{margin-left:46px}header #sub{position:static;margin-top:14px;padding:8px 12px}nav{position:sticky;top:0;left:0;width:100%;flex-direction:row;overflow-x:auto;gap:4px;background:#fff;padding:8px 12px;border-bottom:1px solid var(--ln)}nav:before{display:none}nav button{padding:10px;font-size:12px;flex-shrink:0;gap:7px}nav svg{width:16px;height:16px}main{margin:0;padding:20px 16px}.topbar{padding-bottom:16px;margin-bottom:22px}.profile span:not(.avatar){display:none}.pageheading h2{font-size:25px}.metrics{gap:10px;margin-bottom:20px}.metric{padding:14px}.metric-top{font-size:11px;gap:5px}.metric strong{font-size:25px}.metric small{font-size:10px}.cd{padding:18px}.row label{flex:1 1 140px}.row input,.row select{width:100%}.row button.b{width:100%}.crumb{font-size:11px}}
 </style>
-<link rel="stylesheet" href="auth.css"></head><body><div id="auth-root"></div>
+<link rel="stylesheet" href="auth.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="theme-color" content="#3267ed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ControlAI">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head><body><div id="auth-root"></div>
 <header><div class="brand"><span class="brandmark">❄</span><span>Control<em>AI</em></span></div><h1>Gestão de climatização</h1><div class="mu" id="sub"></div></header>
 <nav>
 <button data-act="aba" data-a="est">Estoque</button><button data-act="aba" data-a="obras">Obras</button>
@@ -193,4 +201,4 @@ document.addEventListener("change",async e=>{const t=e.target,f=t.dataset.f,id=+
   if(await restaurarBackupServidor(j))flash("Backup restaurado.")}catch(x){flash("Backup inválido: "+x.message)}}});
 document.addEventListener("input",e=>{const i=e.target.id;if(i=="q"||i=="sv")fillEst();else if(i=="bq")fillProd()});
 document.addEventListener("toggle",e=>{const o=e.target.dataset?.o;if(o){e.target.open?abertas.add(o):abertas.delete(o)}},true);
-</script><script src="pedidos.js"></script><script src="storage.js"></script><script src="auth.js"></script><script>iniciarAutenticacao();</script></body></html>
+</script><script src="pedidos.js"></script><script src="storage.js"></script><script src="auth.js"></script><script>iniciarAutenticacao();</script><script src="/pwa.js"></script></body></html>

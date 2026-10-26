@@ -71,7 +71,11 @@ class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
+    extensions_map = {**SimpleHTTPRequestHandler.extensions_map, '.webmanifest':'application/manifest+json'}
+
     def end_headers(self):
+        if urlsplit(self.path).path in ('/service-worker.js','/manifest.webmanifest','/pwa.js'):
+            self.send_header('Cache-Control','no-cache')
         self.send_header('X-Content-Type-Options','nosniff')
         self.send_header('X-Frame-Options','DENY')
         self.send_header('Referrer-Policy','no-referrer')
@@ -146,7 +150,7 @@ class Handler(SimpleHTTPRequestHandler):
                     else:
                         result = self.backend.rpc('controlai_list_users' if path=='/api/users' else 'controlai_get_audit',token)
                 return self.reply(200,result)
-            if path not in ('/','/index.html','/auth.js','/auth.css','/storage.js','/pedidos.js'):
+            if path not in ('/','/index.html','/auth.js','/auth.css','/storage.js','/pedidos.js','/manifest.webmanifest','/pwa.js','/service-worker.js','/icons/icon-180.png','/icons/icon-192.png','/icons/icon-512.png'):
                 return self.reply(404,dict(error='Não encontrado.'))
             return super().do_GET()
         except RemoteError as error:

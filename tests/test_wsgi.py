@@ -37,6 +37,22 @@ class ProductionEntry(unittest.TestCase):
         self.assertEqual(self.request('/sqlite_server.py','HEAD')['body'],b'')
         self.assertTrue(self.request('/sqlite_server.py','HEAD')['status'].startswith('404'))
 
+    def test_installable_manifest_icons_and_worker(self):
+        manifest=self.request('/manifest.webmanifest')
+        self.assertTrue(manifest['status'].startswith('200'))
+        self.assertEqual(dict(manifest['headers'])['Content-type'],'application/manifest+json')
+        data=json.loads(manifest['body'])
+        self.assertEqual(data['display'],'standalone')
+        self.assertEqual(data['scope'],'/')
+        for icon in data['icons']:
+            response=self.request(icon['src'])
+            self.assertTrue(response['status'].startswith('200'))
+            self.assertTrue(response['body'].startswith(b'\x89PNG\r\n\x1a\n'))
+        worker=self.request('/service-worker.js')
+        self.assertTrue(worker['status'].startswith('200'))
+        self.assertEqual(dict(worker['headers'])['Cache-Control'],'no-cache')
+        self.assertEqual(dict(self.request('/api/state',token='test-operator')['headers'])['Cache-Control'],'no-store')
+
     def test_cookies_and_authenticated_operations(self):
         result=self.request('/api/auth/login','POST',dict(email='test@example.test',senha='test-password'))
         self.assertTrue(result['status'].startswith('200'))

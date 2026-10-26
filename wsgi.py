@@ -39,6 +39,8 @@ class Request(Handler):
             self.response_headers.append((keyword,str(value)))
 
     def end_headers(self):
+        if self.path.split('?',1)[0] in ('/service-worker.js','/manifest.webmanifest','/pwa.js'):
+            self.send_header('Cache-Control','no-cache')
         self.send_header('X-Content-Type-Options','nosniff')
         self.send_header('X-Frame-Options','DENY')
         self.send_header('Referrer-Policy','no-referrer')
