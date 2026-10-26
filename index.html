@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light"><head><meta charset="utf-8"><title>ControlAI · Gestão de climatização</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f6f8;--cd:#fff;--tx:#1b2430;--mu:#667085;--ln:#d9dee5;--ac:#0b6e99;--ok:#177245;--bad:#b42318}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181d;--cd:#1d232b;--tx:#e8ecf1;--mu:#98a2b3;--ln:#323b46;--ac:#4cb3e0;--ok:#4cc38a;--bad:#f97066}}
+:root[data-theme="dark"]{--bg:#14181d;--cd:#1d232b;--tx:#e8ecf1;--mu:#98a2b3;--ln:#323b46;--ac:#4cb3e0;--ok:#4cc38a;--bad:#f97066}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:12px 16px 0}h1{margin:0;font-size:18px}.mu{color:var(--mu);font-size:13px}
+nav{display:flex;gap:4px;overflow-x:auto;padding:10px 16px 0;border-bottom:1px solid var(--ln)}
+nav button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mu);padding:8px 12px;font:inherit;cursor:pointer;white-space:nowrap}
+nav button.on{color:var(--ac);border-color:var(--ac);font-weight:600}
+main{padding:16px;max-width:1100px;margin:auto}
+.cd{background:var(--cd);border:1px solid var(--ln);border-radius:8px;padding:14px;margin-bottom:14px}
+h2{font-size:16px;margin:0 0 8px}
+input,select,button.b{font:inherit;color:var(--tx);background:var(--cd);border:1px solid var(--ln);border-radius:6px;padding:7px 9px;max-width:100%}
+button.b{background:var(--ac);color:#fff;border-color:var(--ac);cursor:pointer}button.b.g{background:none;color:var(--ac)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:end}.row label{display:flex;flex-direction:column;font-size:12px;color:var(--mu);gap:2px}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--ln);vertical-align:middle}th{color:var(--mu);font-weight:600}
+td input,td select{width:100%;min-width:70px;padding:4px 6px}td input[type=number]{width:70px}
+.msg{background:var(--cd);border-left:4px solid var(--ac);padding:10px 12px;margin-bottom:14px;border-radius:4px}
+summary{cursor:pointer;padding:2px 0}.tot{font-size:20px;font-weight:700;margin:4px 0 0}.mod{border-top:1px solid var(--ln);padding:8px 0}h3{font-size:14px;margin:12px 0 6px}.bad{color:var(--bad);font-weight:600}.ok{color:var(--ok)}
+</style>
+<style>
+:root{--bg:#f5f7fb;--cd:#fff;--tx:#18243b;--mu:#78849a;--ln:#e9edf4;--ac:#3267ed;--ok:#168567;--bad:#d34b55;box-sizing:border-box}
+*{box-sizing:border-box}body{font:14px/1.6 Inter,"Segoe UI",system-ui,sans-serif;background:var(--bg)}
+header{position:fixed;inset:0 auto 0 0;width:244px;background:white;border-right:1px solid var(--ln);padding:32px 24px;z-index:2}
+.brand{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:750;letter-spacing:-1px;color:#192b4b}.brandmark{display:grid;place-items:center;background:var(--ac);color:white;width:38px;height:38px;border-radius:12px;font-size:25px}.brand em{font-style:normal;color:var(--ac)}header h1{font-size:11px;font-weight:500;color:var(--mu);margin:7px 0 0 48px;letter-spacing:.1px}header #sub{position:absolute;bottom:28px;left:24px;right:24px;background:#f6f8fc;border:1px solid var(--ln);padding:13px;border-radius:12px;font-size:11px}
+nav{position:fixed;left:16px;top:146px;width:212px;display:flex;flex-direction:column;border:0;padding:0;gap:7px;z-index:3;overflow:visible}nav:before{content:'ESPAÇO DE TRABALHO';font-size:10px;letter-spacing:1.6px;color:#98a2b4;padding:0 16px 12px;font-weight:650}nav button{display:flex;align-items:center;gap:12px;padding:12px 15px;text-align:left;border:0;border-radius:10px;font-size:13px;color:#72809a;font-weight:550;transition:background .15s}nav button:hover{background:#f5f7fc}nav button.on{background:#edf2ff;color:var(--ac);font-weight:650}nav svg{width:19px;height:19px;flex-shrink:0}
+main{margin:0 0 0 244px;padding:34px 40px;max-width:1700px}.topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:24px;border-bottom:1px solid var(--ln);margin-bottom:30px}.crumb{font-size:12px;color:var(--mu)}.crumb b{font-weight:550;color:#394860}.profile{display:flex;align-items:center;gap:10px;color:#63718b;font-size:12px}.avatar{height:34px;width:34px;border-radius:50%;display:grid;place-items:center;background:#e9efff;color:var(--ac);font-size:11px;font-weight:700}.pageheading{margin-bottom:26px}.pageheading .eyebrow{font-size:10px;color:var(--ac);font-weight:700;letter-spacing:1.6px;text-transform:uppercase}.pageheading h2{font-size:28px;letter-spacing:-.9px;font-weight:700;margin:5px 0 3px}.pageheading p{margin:0;color:var(--mu);font-size:13px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:26px}.metric{background:white;border:1px solid var(--ln);border-radius:14px;padding:20px}.metric-top{display:flex;align-items:center;justify-content:space-between;color:#718099;font-size:12px}.metric-icon{display:grid;place-items:center;width:32px;height:32px;background:#edf2ff;color:var(--ac);border-radius:9px}.metric-icon svg{width:17px;height:17px}.metric:nth-child(2) .metric-icon{background:#eaf8f2;color:#168567}.metric:nth-child(3) .metric-icon{background:#fff5e8;color:#ca8b2e}.metric strong{display:block;font-size:29px;line-height:1.4;letter-spacing:-1px;margin-top:9px}.metric small{color:#97a1b3;font-size:11px}
+.cd{border:1px solid var(--ln);border-radius:14px;padding:24px;margin-bottom:22px;box-shadow:0 3px 12px #20345b03}h2{font-size:15px;font-weight:650;margin:0 0 14px}h3{margin:20px 0 12px}.mu{font-size:12px;line-height:1.8}.row{gap:14px;margin-bottom:8px}.row label{font-size:11px;font-weight:550;color:#66758d;gap:6px}input,select,button.b{border-radius:8px;padding:10px 12px;font-size:13px;min-height:40px}input,select{background:#fcfdff;outline:none}input:focus,select:focus{border-color:#8caafa;box-shadow:0 0 0 3px #3267ed12}input[type=checkbox]{min-height:0;accent-color:var(--ac)}input[type=file]{font-size:12px;border:1px dashed #bfcef0;background:#f7faff;width:100%;padding:18px}input::file-selector-button{background:#eaf0ff;color:#3267ed;border:0;border-radius:6px;padding:8px 12px;margin-right:12px;cursor:pointer}button.b{font-weight:600;box-shadow:0 3px 6px #3267ed12}button.b:hover{filter:brightness(.96)}button.b.g{background:#fff;box-shadow:none;border-color:var(--ln)}.sc{margin-top:20px;border:1px solid var(--ln);border-radius:10px;overflow:auto}table{font-size:12px}th{background:#f8fafd;font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:13px 16px;white-space:nowrap}td{padding:15px 16px}tr:last-child td{border-bottom:0}tr:hover td{background:#fafcff}td input,td select{min-height:34px}td[colspan]{text-align:center;padding:48px 20px;color:#8b97aa}.msg{border:1px solid #dce6ff;border-left:3px solid var(--ac);border-radius:10px;background:#f0f5ff;font-size:12px;padding:15px 18px;margin-bottom:22px}.tot{font-size:25px}.mod{padding:15px 0;border-color:var(--ln)}summary{list-style-position:inside}.footer-note{font-size:11px;color:#99a3b4;text-align:center;padding:14px 0}.bad{font-weight:600}
+button:focus-visible{outline:3px solid #8caafa;outline-offset:3px}
+@media(min-width:1500px){main{padding-left:60px;padding-right:60px}}
+@media(max-width:1050px){header{width:210px;padding-left:20px}nav{width:180px}main{margin-left:210px;padding:24px}.metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){header{position:relative;width:100%;height:auto;padding:18px 20px;border-right:0;border-bottom:1px solid var(--ln)}header h1{margin-left:46px}header #sub{position:static;margin-top:14px;padding:8px 12px}nav{position:sticky;top:0;left:0;width:100%;flex-direction:row;overflow-x:auto;gap:4px;background:#fff;padding:8px 12px;border-bottom:1px solid var(--ln)}nav:before{display:none}nav button{padding:10px;font-size:12px;flex-shrink:0;gap:7px}nav svg{width:16px;height:16px}main{margin:0;padding:20px 16px}.topbar{padding-bottom:16px;margin-bottom:22px}.profile span:not(.avatar){display:none}.pageheading h2{font-size:25px}.metrics{gap:10px;margin-bottom:20px}.metric{padding:14px}.metric-top{font-size:11px;gap:5px}.metric strong{font-size:25px}.metric small{font-size:10px}.cd{padding:18px}.row label{flex:1 1 140px}.row input,.row select{width:100%}.row button.b{width:100%}.crumb{font-size:11px}}
+</style>
+<link rel="stylesheet" href="auth.css"></head><body><div id="auth-root"></div>
+<header><div class="brand"><span class="brandmark">❄</span><span>Control<em>AI</em></span></div><h1>Gestão de climatização</h1><div class="mu" id="sub"></div></header>
+<nav>
+<button data-act="aba" data-a="est">Estoque</button><button data-act="aba" data-a="obras">Obras</button>
+<button data-act="aba" data-a="ped">Pedidos</button><button data-act="aba" data-a="eq">Equipamentos</button><button data-act="aba" data-a="com">Planejar compras</button>
+<button data-act="aba" data-a="conf">Conferência</button><button data-act="aba" data-a="bkp">Backup</button>
+</nav>
+<main id="main"></main>
+<script>
+const ST=["Previsto","Reservado","A caminho","Enviado","Instalado"],COMPRA=["Previsto","Reservado"],KEY="ctrl_obras_v1";
+let S={estoque:[],dataEst:"",obras:[],itens:[],nid:1},aba="est",obraSel=null,tipoSel="Evaporadora",msg="",pendDel=null;
+
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const save=()=>salvarServidor();
+const flash=t=>{msg=t;render()};
+const tabela=(c,r)=>`<div class="sc"><table><tr>${c.map(x=>`<th>${esc(x)}</th>`).join("")}</tr>${r.map(l=>`<tr>${l.map(x=>`<td>${x}</td>`).join("")}</tr>`).join("")||`<tr><td colspan="${c.length}" class="mu">Nada por aqui ainda.</td></tr>`}</table></div>`;
+
+/* ---------- leitura do export do Supra ---------- */
+function biff(ab){const d=new DataView(ab),u=new Uint8Array(ab),dec=new TextDecoder("windows-1252"),c={};let i=0,R=0,C=0;
+ while(i+4<=u.length){const op=d.getUint16(i,true),ln=d.getUint16(i+2,true),p=i+4;
+  if(p+ln<=u.length&&((op==4&&ln>=8)||(op==3&&ln>=15)||(op==2&&ln>=9))){const r=d.getUint16(p,true),k=d.getUint16(p+2,true);let v;
+   if(op==4)v=dec.decode(u.subarray(p+8,p+8+u[p+7]));else if(op==3)v=d.getFloat64(p+7,true);else v=d.getUint16(p+7,true);
+   c[r+","+k]=v;R=Math.max(R,r+1);C=Math.max(C,k+1)}
+  i+=4+ln}
+ return Array.from({length:R},(_,r)=>Array.from({length:C},(_,k)=>c[r+","+k]))}
+const achaCab=rows=>rows.findIndex(r=>r&&r.includes("Código"));
+async function linhas(f){const ab=await f.arrayBuffer(),u=new Uint8Array(ab);let rows=[];
+ if(!(u[0]==0x50&&u[1]==0x4b)&&!/\.csv$/i.test(f.name)){try{rows=biff(ab)}catch(e){}}
+ if(achaCab(rows)<0){if(!window.XLSX)throw new Error("o leitor de Excel não carregou (sem internet?)");
+  const wb=XLSX.read(ab,{type:"array"});rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:null})}
+ return rows}
+function extrair(rows){const t=achaCab(rows);if(t<0)throw new Error("não achei a coluna Código. Use o relatório Posição do Estoque");
+ const h=rows[t].map(x=>String(x??"").trim()),ix=n=>h.indexOf(n),last=Math.max(...h.map((x,i)=>x?i:-1));
+ const [cC,cP,cU,cF,cCF,cCl]=["Código","Produto","Und","Fabricante","Cód. Fabricante","Classificação"].map(ix);
+ const out=[];
+ for(const r of rows.slice(t+1)){const cod=parseInt(r[cC]);if(!(cod>0))continue;const p=String(r[cP]??"").trim(),s=p.toUpperCase(),
+  hp=s.match(/(\d+)\s*HP/),k=s.match(/(\d+)\s*K\s*BTU/),b=s.match(/([\d.]+)\s*BTU/);
+  out.push({codigo:cod,produto:p,und:r[cU],fab:r[cF],cod_fab:r[cCF]||"",classe:r[cCl],
+   tipo:s.includes("EVAP")?"Evaporadora":s.includes("COND")?"Condensadora":"Outros",
+   btu:k?k[1]*1000:b?(parseInt(b[1].replace(/\./g,""))||null):null,hp:hp?+hp[1]:null,saldo:Number(r[last])||0})}
+ return{lista:out,ref:String(rows[t+1]?.[last]??"")}}
+
+/* ---------- agrupamento por modelo ---------- */
+let abertas=new Set();
+const chaveEst=e=>{const m=String(e.cod_fab||"").trim().toUpperCase(),g=m.match(/^[AC](RNU[A-Z0-9.\-]+)$/);
+ return g?g[1]:(/^[A-Z0-9][A-Z0-9.\-]{4,}$/.test(m)&&!m.endsWith("-")?m:"cod:"+e.codigo)};
+function prep(){S.estoque.forEach(e=>e.chave=chaveEst(e));const m={};S.estoque.forEach(e=>m[e.codigo]=e.chave);
+ S.itens.forEach(i=>{if(!i.chave)i.chave=m[i.codigo]||"cod:"+i.codigo})}
+function grupos(){const g={};
+ S.estoque.forEach(e=>{const x=g[e.chave]||(g[e.chave]={chave:e.chave,tipo:e.tipo,saldo:0,vars:[],btu:0,hp:0,nome:e.produto});
+  x.saldo+=e.saldo;x.vars.push(e.cod_fab||e.produto);x.btu=Math.max(x.btu,e.btu||0);x.hp=Math.max(x.hp,e.hp||0)});
+ for(const k in g){const x=g[k];x.vars=[...new Set(x.vars)];x.label=k.startsWith("cod:")?x.nome:x.vars.length>1&&/^RNU/.test(k)?"ARNU / CRNU"+k.slice(3):x.vars[0]}
+ return g}
+const lab=(c,G)=>G[c]?.label||(String(c).replace("cod:","código ")+" (fora do Supra)");
+
+/* ---------- cálculos ---------- */
+function compras(){const G=grupos(),disp={},cons={},det={},obras=[];Object.values(G).forEach(g=>disp[g.chave]=g.saldo);
+ const alo={};for(const st of ["Reservado","Previsto"])S.obras.forEach(o=>S.itens.filter(i=>i.obra==o.id&&i.status==st).forEach(i=>{const u=Math.min(Math.max(disp[i.chave]||0,0),i.qtd);disp[i.chave]=(disp[i.chave]||0)-u;alo[i.id]=u}));
+ S.obras.forEach(o=>{const linhas=S.itens.filter(i=>i.obra==o.id).map(i=>{const compra=COMPRA.includes(i.status);let usa=0,falta=0;
+   if(compra){usa=alo[i.id]||0;falta=i.qtd-usa;cons[i.chave]=(cons[i.chave]||0)+i.qtd;const dd=det[i.chave]||(det[i.chave]={}),x=dd[o.nome]||(dd[o.nome]={obra:o.nome,qtd:0,usa:0,falta:0});x.qtd+=i.qtd;x.usa+=usa;x.falta+=falta}
+   return{...i,modelo:lab(i.chave,G),compra,usa,falta}});
+  obras.push({obra:o,linhas,falta:linhas.reduce((a,l)=>a+l.falta,0)})});
+ const cl=Object.keys(cons).map(c=>({modelo:lab(c,G),tipo:G[c]?.tipo||"?",necessario:cons[c],saldo:G[c]?.saldo||0,comprar:Math.max(0,cons[c]-(G[c]?.saldo||0)),chave:c,onde:Object.values(det[c]||{}).filter(x=>x.falta>0)})).filter(r=>r.comprar>0).sort((a,b)=>b.comprar-a.comprar);
+ return{cl,obras}}
+function conferir(){const G=grupos();
+ return S.obras.map(o=>{const it=S.itens.filter(i=>i.obra==o.id),sm=(tp,f)=>it.filter(i=>G[i.chave]?.tipo==tp).reduce((a,i)=>a+(f?(G[i.chave][f]||0):1)*i.qtd,0),
+  ev=sm("Evaporadora"),cd=sm("Condensadora"),al=[];
+  if(ev&&!cd)al.push("tem evaporadora e nenhuma condensadora");if(cd&&!ev)al.push("tem condensadora e nenhuma evaporadora");
+  if(it.some(i=>!G[i.chave]))al.push("modelo que não existe no estoque do Supra");
+  return{obra:o.nome,ev,btu:sm("Evaporadora","btu"),cd,hp:sm("Condensadora","hp"),al:al.join("; ")||"ok"}})}
+
+/* ---------- telas ---------- */
+const vEst=()=>`<div class="cd"><h2>Importar estoque do Supra</h2><p class="mu">No Supra, exporte <b>Posição do Estoque</b> e envie o arquivo (.xls, .xlsx ou .csv). O saldo anterior é substituído; obras e equipamentos não são afetados. Modelos ARNU e CRNU com o restante do nome idêntico são agrupados e têm os saldos somados. Ex.: ARNU09GM1A4 + CRNU09GM1A4. Modelos com outras diferenças permanecem separados.</p>
+<input type="file" id="arq" accept=".xls,.xlsx,.csv"></div>
+<div class="cd"><h2>Estoque atual (${Object.keys(grupos()).length} modelos)</h2><div class="row"><label>Buscar<input id="q" placeholder="modelo"></label>
+<label>&nbsp;<span><input type="checkbox" id="sv" checked> só com saldo</span></label></div><div id="tbEst"></div></div>`;
+function fillEst(){const q=($("#q").value||"").toLowerCase(),sv=$("#sv").checked,
+ l=Object.values(grupos()).filter(g=>(!sv||g.saldo>0)&&(g.label+" "+g.vars.join(" ")).toLowerCase().includes(q)).sort((a,b)=>a.label.localeCompare(b.label));
+ $("#tbEst").innerHTML=tabela(["Modelo","Tipo","Variações no Supra","Saldo total"],l.slice(0,300).map(g=>[esc(g.label),g.tipo,esc(g.vars.join(" + ")),g.saldo]))+(l.length>300?`<p class="mu">Mostrando 300 de ${l.length}. Refine a busca.</p>`:"")}
+const vObras=()=>`<div class="cd"><h2>Nova obra</h2><div class="row"><label>Nome<input id="on"></label><label>Endereço<input id="oe"></label><label>Responsável<input id="or"></label>
+<button class="b" data-act="addObra">Cadastrar</button></div></div>
+<div class="cd"><h2>Obras</h2>${tabela(["Obra","Endereço","Responsável","Itens",""],S.obras.map(o=>[esc(o.nome),esc(o.end),esc(o.resp),S.itens.filter(i=>i.obra==o.id).length,
+ `<button class="b g" data-act="delObra" data-id="${o.id}">${pendDel==o.id?"Confirmar exclusão?":"Excluir"}</button>`]))}</div>`;
+function vEq(){if(!S.obras.length||!S.estoque.length)return`<div class="cd">Cadastre uma obra e importe o estoque do Supra primeiro.</div>`;
+ if(!S.obras.some(o=>o.id==obraSel))obraSel=S.obras[0].id;
+ const it=S.itens.filter(i=>i.obra==obraSel),G=grupos(),op=a=>a.map(x=>`<option>${x}</option>`).join("");
+ return`<div class="cd"><div class="row"><label>Obra<select data-f="obra">${S.obras.map(o=>`<option value="${o.id}" ${o.id==obraSel?"selected":""}>${esc(o.nome)}</option>`).join("")}</select></label></div></div>
+<div class="cd"><h2>Adicionar equipamento</h2><div class="row"><label>Tipo<select data-f="tp">${["Evaporadora","Condensadora","Outros"].map(t=>`<option ${t==tipoSel?"selected":""}>${t}</option>`).join("")}</select></label>
+<label>Filtrar<input id="bq" placeholder="modelo"></label></div>
+<div class="row" style="margin-top:8px"><label style="flex:1 1 100%">Modelo<select id="pp" size="6"></select></label>
+<label>Qtd<input id="qq" type="number" min="1" value="1" style="width:70px"></label><label>Ambiente / pavimento<input id="am"></label>
+<label>Status<select id="ss">${op(ST)}</select></label><label>Nº de série<input id="se"></label><button class="b" data-act="addItem">Adicionar</button></div></div>
+<div class="cd"><h2>Equipamentos desta obra</h2>${tabela(["Modelo","Qtd","Ambiente","Status","Série",""],it.map(i=>[esc(lab(i.chave,G)),
+ `<input type="number" min="1" value="${i.qtd}" data-f="qt" data-id="${i.id}">`,`<input value="${esc(i.amb)}" data-f="am" data-id="${i.id}">`,
+ `<select data-f="st" data-id="${i.id}">${ST.map(s=>`<option ${s==i.status?"selected":""}>${s}</option>`).join("")}</select>`,`<input value="${esc(i.serie)}" data-f="sr" data-id="${i.id}">`,
+ `<button class="b g" data-act="delItem" data-id="${i.id}">Excluir</button>`]))}</div>`}
+function fillProd(){const q=($("#bq").value||"").toLowerCase(),
+ l=Object.values(grupos()).filter(g=>g.tipo==tipoSel&&(g.label+" "+g.vars.join(" ")).toLowerCase().includes(q)).sort((a,b)=>a.label.localeCompare(b.label)).slice(0,200);
+ $("#pp").innerHTML=l.map(g=>`<option value="${esc(g.chave)}">${esc(g.label)} | saldo ${g.saldo}</option>`).join("")}
+const bad=n=>n?`<span class="bad">${n}</span>`:`<span class="ok">0</span>`;
+function vCom(){const{cl,obras}=compras(),sm=t=>cl.filter(r=>r.tipo==t).reduce((a,r)=>a+r.comprar,0),ev=sm("Evaporadora"),cd=sm("Condensadora"),ou=cl.reduce((a,r)=>a+r.comprar,0)-ev-cd;
+ return`<div class="msg mu">Conta só itens <b>Previsto</b> e <b>Reservado</b>; <b>A caminho</b> já foi comprado, então não conta como falta nem usa o estoque do Supra; Enviado e Instalado já saíram do estoque. <b>Reservado</b> tem prioridade no estoque, em qualquer obra. <b>Previsto</b> só recebe o que sobrar depois de atender todos os Reservados (entre Previstos, vale a ordem de cadastro das obras). Só aparece o que precisa ser comprado.</div>
+<div class="cd"><h2>Total a comprar (todas as obras)</h2>${cl.length?`<p class="tot">TOTAL: ${ev+cd} máquinas faltantes</p><p class="mu">${ev} evaporadoras + ${cd} condensadoras${ou?` · mais ${ou} outros itens (painéis, controles etc.)`:""}</p><p class="mu">Clique no modelo para ver em quais obras está faltando.</p>`+cl.map(r=>`<details class="mod" data-o="m:${esc(r.chave)}" ${abertas.has("m:"+r.chave)?"open":""}><summary><b>${esc(r.modelo)}</b> <span class="mu">· ${r.tipo} · necessário ${r.necessario} · saldo ${r.saldo} ·</span> <span class="bad">comprar ${r.comprar}</span></summary>${tabela(["Obra","Necessário","Do estoque","Falta"],r.onde.map(x=>[esc(x.obra),x.qtd,x.usa,bad(x.falta)]))}</details>`).join(""):`<p class="ok">Nada a comprar: o estoque do Supra cobre tudo.</p>`}
+<p><button class="b" data-act="csvCompras">Baixar lista (CSV, abre no Excel)</button></p></div>
+<h2>Obras <span class="mu">(clique para abrir)</span></h2>${obras.map(({obra:o,linhas,falta})=>{const fl=linhas.filter(l=>l.falta>0),ac=linhas.filter(l=>l.status=="A caminho").reduce((a,l)=>a+l.qtd,0);
+ return`<details class="cd" data-o="${o.id}" ${abertas.has(String(o.id))?"open":""}><summary><b>${esc(o.nome)}</b> <span class="mu">· ${linhas.reduce((a,l)=>a+l.qtd,0)} equipamentos ·</span> ${falta?`<span class="bad">falta comprar ${falta}</span>`:`<span class="ok">sem pendência de compra</span>`}${ac?` <span class="mu">· ${ac} a caminho</span>`:""}</summary>
+${fl.length?`<h3>Falta comprar</h3>`+tabela(["Modelo","Necessário","Do estoque","Falta"],fl.map(l=>[esc(l.modelo),l.qtd,l.usa,bad(l.falta)])):""}
+<h3>Equipamentos da obra</h3>${tabela(["Modelo","Ambiente","Status","Qtd","Do estoque","Falta"],linhas.map(l=>[esc(l.modelo),esc(l.amb),l.status,l.qtd,l.compra?l.usa:"—",l.compra?bad(l.falta):"—"]))}</details>`}).join("")||`<div class="cd mu">Cadastre obras e equipamentos para ver o que falta.</div>`}`}
+const vConf=()=>`<div class="msg mu">Em Multi V/VRF uma condensadora atende várias evaporadoras, então comparamos totais (BTU x HP) em vez de pares 1 a 1. Confira a taxa de combinação no manual do modelo.</div>
+<div class="cd">${tabela(["Obra","Evaporadoras","BTU (soma)","Condensadoras","HP (soma)","Alertas"],conferir().map(r=>[esc(r.obra),r.ev,r.btu,r.cd,r.hp,r.al=="ok"?`<span class="ok">ok</span>`:`<span class="bad">${esc(r.al)}</span>`]))}</div>`;
+const vBkp=()=>`<div class="cd"><h2>Backup</h2><p class="mu">Os dados ficam salvos <b>no banco de dados do servidor</b>. Exporte cópias de segurança regularmente. Para migrar do app anterior, restaure o backup JSON. Restaurar substitui os dados atuais do servidor.</p>
+<button class="b" data-act="bkpSave">Baixar backup</button><p>Restaurar backup: <input type="file" id="bk" accept=".json"></p></div>`;
+
+
+const icons={est:'M3 7l9-4 9 4-9 4-9-4zm0 0v10l9 4 9-4V7M12 11v10',obras:'M4 21V7h10v14M14 11h6v10M8 11h2M8 15h2M8 19h2M2 21h20',eq:'M4 4h16v12H4zM8 20h8M12 16v4M7 8h10M7 12h5',com:'M3 3h2l3 12h11l2-8H6M9 20h.01M18 20h.01',conf:'M9 5H5v16h14V5h-4M9 3h6v4H9zM8 13l3 3 5-6',bkp:'M12 3v12m-4-4 4 4 4-4M4 15v6h16v-6'};
+const icon=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${icons[k]||icons.est}"/></svg>`;
+document.querySelectorAll('nav button').forEach(b=>b.insertAdjacentHTML('afterbegin',icon(b.dataset.a)));
+const pages={ped:['Do pedido à entrega','Pedidos por obra','Acompanhe solicitações, entregas parciais e o histórico de atendimento.'],est:['Seu estoque, sob controle','Estoque de equipamentos','Consulte os modelos e saldos importados do Supra.'],obras:['Destinos e responsáveis','Gestão de obras','Organize as obras e os responsáveis por cada destino.'],eq:['Planejamento por obra','Equipamentos','Acompanhe modelos, quantidades e etapas de cada obra.'],com:['Antecipe as necessidades','Planejamento de compras','Veja o que o estoque cobre e o que ainda precisa ser comprado.'],conf:['Uma visão do conjunto','Conferência técnica','Consulte capacidades e alertas dos equipamentos por obra.'],bkp:['Cuide dos seus dados','Backup e restauração','Exporte uma cópia dos registros para manter seus dados protegidos.']};
+function shell(){const p=pages[aba],G=Object.values(grupos());const cards=[['Modelos cadastrados',G.length,'Códigos agrupados por modelo','est'],['Unidades no estoque',S.estoque.reduce((a,e)=>a+e.saldo,0),'Saldo informado pelo Supra','est'],['Obras cadastradas',S.obras.length,'Destinos dos equipamentos','obras'],['Unidades a comprar',compras().cl.reduce((a,e)=>a+e.comprar,0),'Necessidades ainda não cobertas','com']];return `<div class="topbar"><div class="crumb">Espaço de trabalho &nbsp; / &nbsp; <b>${p[1]}</b></div><div class="profile"><span>Gestão de climatização</span><span class="avatar">CA</span></div></div><div class="pageheading"><span class="eyebrow">${p[0]}</span><h2>${p[1]}</h2><p>${p[2]}</p></div>${aba==='est'?`<div class="metrics">${cards.map(c=>`<div class="metric"><div class="metric-top">${c[0]}<span class="metric-icon">${icon(c[3])}</span></div><strong>${c[1].toLocaleString('pt-BR')}</strong><small>${c[2]}</small></div>`).join('')}</div>`:''}`}
+
+function render(){document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.a==aba));
+ $("#main").innerHTML=shell()+(msg?`<div class="msg">${esc(msg)}</div>`:"")+({est:vEst,obras:vObras,ped:vPedidos,eq:vEq,com:vCom,conf:vConf,bkp:vBkp})[aba]()+`<div class="footer-note">ControlAI · Dados compartilhados no servidor</div>`;msg="";
+ $("#sub").textContent="Estoque Supra de: "+(S.dataEst||"nunca importado");
+ if(aba=="est")fillEst();if(aba=="eq"&&$("#pp"))fillProd()}
+
+/* ---------- ações ---------- */
+const csv=r=>"\ufeff"+r.map(l=>l.map(v=>{v=String(v??"");return/[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(";")).join("\n");
+async function baixar(nome,data){try{const d=await window.claude?.use("downloads");
+ if(d)await d.save({filename:nome,data});
+ else{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data]));a.download=nome;document.body.appendChild(a);a.click();a.remove()}
+ flash("Arquivo salvo: "+nome)}catch(e){if(e.code!="declined")flash("Não foi possível baixar ("+(e.code||e.message)+")")}}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act,id=+b.dataset.id;
+ if(a=="aba"){aba=b.dataset.a;render()}
+ else if(a=="addObra"){const n=$("#on").value.trim();if(!n)return flash("Digite o nome da obra.");
+  if(S.obras.some(o=>o.nome.toLowerCase()==n.toLowerCase()))return flash("Já existe uma obra com esse nome.");
+  S.obras.push({id:S.nid++,nome:n,end:$("#oe").value,resp:$("#or").value});save();render()}
+ else if(a=="delObra"){if((S.pedidos||[]).some(p=>p.obraId==id))return flash("Esta obra possui pedidos registrados e não pode ser excluída.");if(pendDel!=id){pendDel=id;return render()}S.obras=S.obras.filter(o=>o.id!=id);S.itens=S.itens.filter(i=>i.obra!=id);pendDel=null;save();render()}
+ else if(a=="addItem"){const c=$("#pp").value;if(!c)return flash("Escolha um produto na lista.");
+  S.itens.push({id:S.nid++,obra:obraSel,chave:c,qtd:Math.max(1,parseInt($("#qq").value)||1),amb:$("#am").value,status:$("#ss").value,serie:$("#se").value});save();render()}
+ else if(a=="delItem"){S.itens=S.itens.filter(i=>i.id!=id);save();render()}
+else if(a=="csvCompras"){const{cl,obras}=compras();
+  baixar("lista_de_compras.csv",csv([["TOTAL A COMPRAR"],["Modelo","Tipo","Necessário","Saldo Supra","Comprar"],...cl.map(r=>[r.modelo,r.tipo,r.necessario,r.saldo,r.comprar]),["TOTAL DE MÁQUINAS FALTANTES","","","",cl.filter(r=>r.tipo=="Evaporadora"||r.tipo=="Condensadora").reduce((a,r)=>a+r.comprar,0)],[],
+   ["POR OBRA"],["Obra","Modelo","Ambiente","Status","Qtd","Do estoque","Falta"],...obras.flatMap(x=>x.linhas.map(l=>[x.obra.nome,l.modelo,l.amb,l.status,l.qtd,l.usa,l.falta]))]))}
+  else if(a=="bkpSave")baixarBackupServidor()});
+document.addEventListener("change",async e=>{const t=e.target,f=t.dataset.f,id=+t.dataset.id;
+ if(f=="obra"){obraSel=+t.value;render()}else if(f=="tp"){tipoSel=t.value;fillProd()}
+ else if(f){const i=S.itens.find(x=>x.id==id);if(!i)return;
+  if(f=="qt")i.qtd=Math.max(1,parseInt(t.value)||1);else if(f=="st")i.status=t.value;else if(f=="am")i.amb=t.value;else if(f=="sr")i.serie=t.value;save()}
+ else if(t.id=="arq"&&t.files[0]){try{const{lista,ref}=extrair(await linhas(t.files[0]));if(!lista.length)throw new Error("nenhum produto encontrado");
+  S.estoque=lista;S.dataEst=ref;prep();save();flash(`${lista.length} produtos importados. Saldo de ${ref}.`)}catch(x){flash("Não consegui ler o arquivo: "+x.message)}}
+ else if(t.id=="bk"&&t.files[0]){if(!confirm("Restaurar o backup substituirá todos os dados atuais do servidor. Deseja continuar?"))return;try{const j=JSON.parse(await t.files[0].text());if(!Array.isArray(j.obras)||!Array.isArray(j.itens)||!Array.isArray(j.estoque))throw new Error("arquivo não é um backup deste app");
+  if(await restaurarBackupServidor(j))flash("Backup restaurado.")}catch(x){flash("Backup inválido: "+x.message)}}});
+document.addEventListener("input",e=>{const i=e.target.id;if(i=="q"||i=="sv")fillEst();else if(i=="bq")fillProd()});
+document.addEventListener("toggle",e=>{const o=e.target.dataset?.o;if(o){e.target.open?abertas.add(o):abertas.delete(o)}},true);
+</script><script src="pedidos.js"></script><script src="storage.js"></script><script src="auth.js"></script><script>iniciarAutenticacao();</script></body></html>

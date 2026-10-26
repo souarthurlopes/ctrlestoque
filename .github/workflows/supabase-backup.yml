@@ -1,0 +1,39 @@
+name: Backup diário criptografado do Supabase
+on:
+  schedule:
+    - cron: '15 6 * * *' # 03h15 em São Paulo; o GitHub pode atrasar a execução.
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: supabase-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: vars.SUPABASE_BACKUP_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container: postgres:18
+    steps:
+      - name: Preparar ferramentas
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends python3 gnupg ca-certificates git
+      - uses: actions/checkout@v4
+      - name: Gerar e verificar backup criptografado
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_CA_CERT: ${{ vars.SUPABASE_DB_CA_CERT }}
+          BACKUP_PUBLIC_KEY: ${{ vars.BACKUP_PUBLIC_KEY }}
+          BACKUP_KEY_FINGERPRINT: ${{ vars.BACKUP_KEY_FINGERPRINT }}
+        run: python3 scripts/backup_supabase.py backups
+      - name: Guardar cópia fora do Supabase por 14 dias
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-encrypted-${{ github.run_id }}
+          path: |
+            backups/*.dump.gpg
+            backups/*.sha256
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
