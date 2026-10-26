@@ -85,22 +85,45 @@ function extrair(rows){const t=achaCab(rows);if(t<0)throw new Error("não achei 
  for(const r of rows.slice(t+1)){const cod=parseInt(r[cC]);if(!(cod>0))continue;const p=String(r[cP]??"").trim(),s=p.toUpperCase(),
   hp=s.match(/(\d+)\s*HP/),k=s.match(/(\d+)\s*K\s*BTU/),b=s.match(/([\d.]+)\s*BTU/);
   out.push({codigo:cod,produto:p,und:r[cU],fab:r[cF],cod_fab:r[cCF]||"",classe:r[cCl],
-   tipo:s.includes("EVAP")?"Evaporadora":s.includes("COND")?"Condensadora":"Outros",
+   tipo:tipoEquipamento({produto:p,cod_fab:r[cCF]}),
    btu:k?k[1]*1000:b?(parseInt(b[1].replace(/\./g,""))||null):null,hp:hp?+hp[1]:null,saldo:Number(r[last])||0})}
  return{lista:out,ref:String(rows[t+1]?.[last]??"")}}
 
 /* ---------- agrupamento por modelo ---------- */
 let abertas=new Set();
-const chaveEst=e=>{const m=String(e.cod_fab||"").trim().toUpperCase(),g=m.match(/^[AC](RNU[A-Z0-9.\-]+)$/);
- return g?g[1]:(/^[A-Z0-9][A-Z0-9.\-]{4,}$/.test(m)&&!m.endsWith("-")?m:"cod:"+e.codigo)};
-function prep(){S.estoque.forEach(e=>e.chave=chaveEst(e));const m={};S.estoque.forEach(e=>m[e.codigo]=e.chave);
- S.itens.forEach(i=>{if(!i.chave)i.chave=m[i.codigo]||"cod:"+i.codigo})}
+const modeloEst=e=>{
+ for(const text of [e.cod_fab,e.produto]){
+  const match=String(text||"").trim().toUpperCase().match(/\b([AC]R(?:NU|UN)[A-Z0-9.\-]+)\b/);
+  if(match)return match[1];
+ }
+ return String(e.cod_fab||"").trim().toUpperCase();
+};
+const chaveModelo=value=>{
+ const m=String(value||"").trim().toUpperCase(),g=m.match(/^[AC](R(?:NU|UN)[A-Z0-9.\-]+)$/);
+ return g?g[1]:value;
+};
+function tipoEquipamento(e){
+ const m=modeloEst(e),s=String(e.produto||"").toUpperCase();
+ if(/^[AC]RUN/.test(m))return "Condensadora";
+ if(/^[AC]RNU/.test(m))return "Evaporadora";
+ return s.includes("EVAP")?"Evaporadora":s.includes("COND")?"Condensadora":e.tipo||"Outros";
+}
+const chaveEst=e=>{const m=modeloEst(e);
+ return /^[A-Z0-9][A-Z0-9.\-]{4,}$/.test(m)&&!m.endsWith("-")?chaveModelo(m):"cod:"+e.codigo;
+};
+function prep(){const antigas=new Map(),porCodigo=new Map();
+ S.estoque.forEach(e=>{const anterior=e.chave;e.chave=chaveEst(e);e.tipo=tipoEquipamento(e);
+  if(anterior)antigas.set(anterior,e.chave);porCodigo.set(String(e.codigo),e.chave);
+ });
+ S.itens.forEach(i=>{i.chave=antigas.get(i.chave)||porCodigo.get(String(i.codigo))||chaveModelo(i.chave)||"cod:"+i.codigo;});
+ // Pedidos e entregas preservam as referências históricas registradas.
+}
 function grupos(){const g={};
  S.estoque.forEach(e=>{const x=g[e.chave]||(g[e.chave]={chave:e.chave,tipo:e.tipo,saldo:0,vars:[],btu:0,hp:0,nome:e.produto});
-  x.saldo+=e.saldo;x.vars.push(e.cod_fab||e.produto);x.btu=Math.max(x.btu,e.btu||0);x.hp=Math.max(x.hp,e.hp||0)});
- for(const k in g){const x=g[k];x.vars=[...new Set(x.vars)];x.label=k.startsWith("cod:")?x.nome:x.vars.length>1&&/^RNU/.test(k)?"ARNU / CRNU"+k.slice(3):x.vars[0]}
+  x.saldo+=e.saldo;x.vars.push(modeloEst(e)||e.produto);x.btu=Math.max(x.btu,e.btu||0);x.hp=Math.max(x.hp,e.hp||0)});
+ for(const k in g){const x=g[k];x.vars=[...new Set(x.vars)];x.label=k.startsWith("cod:")?x.nome:x.vars.length>1&&/^R(?:NU|UN)/.test(k)?"A"+k+" / C"+k:x.vars[0]}
  return g}
-const lab=(c,G)=>G[c]?.label||(String(c).replace("cod:","código ")+" (fora do Supra)");
+const lab=(c,G)=>G[chaveModelo(c)]?.label||(String(c).replace("cod:","código ")+" (fora do Supra)");
 
 /* ---------- cálculos ---------- */
 function compras(){const G=grupos(),disp={},cons={},det={},obras=[];Object.values(G).forEach(g=>disp[g.chave]=g.saldo);
@@ -119,7 +142,7 @@ function conferir(){const G=grupos();
   return{obra:o.nome,ev,btu:sm("Evaporadora","btu"),cd,hp:sm("Condensadora","hp"),al:al.join("; ")||"ok"}})}
 
 /* ---------- telas ---------- */
-const vEst=()=>`<div class="cd"><h2>Importar estoque do Supra</h2><p class="mu">No Supra, exporte <b>Posição do Estoque</b> e envie o arquivo (.xls, .xlsx ou .csv). O saldo anterior é substituído; obras e equipamentos não são afetados. Modelos ARNU e CRNU com o restante do nome idêntico são agrupados e têm os saldos somados. Ex.: ARNU09GM1A4 + CRNU09GM1A4. Modelos com outras diferenças permanecem separados.</p>
+const vEst=()=>`<div class="cd"><h2>Importar estoque do Supra</h2><p class="mu">No Supra, exporte <b>Posição do Estoque</b> e envie o arquivo (.xls, .xlsx ou .csv). O saldo anterior é substituído; obras e equipamentos não são afetados. Evaporadoras ARNU/CRNU e condensadoras ARUN/CRUN com o restante do modelo idêntico são agrupadas e têm os saldos somados. Modelos com outras diferenças permanecem separados.</p>
 <input type="file" id="arq" accept=".xls,.xlsx,.csv"></div>
 <div class="cd"><h2>Estoque atual (${Object.keys(grupos()).length} modelos)</h2><div class="row"><label>Buscar<input id="q" placeholder="modelo"></label>
 <label>&nbsp;<span><input type="checkbox" id="sv" checked> só com saldo</span></label></div><div id="tbEst"></div></div>`;

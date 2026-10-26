@@ -1,6 +1,6 @@
 # ControlAI
 
-Gestão de evaporadoras e condensadoras por obra: estoque importado do Supra, agrupamento ARNU/CRNU, pedidos, entregas parciais e histórico com responsáveis. O Supra continua sendo a fonte oficial do saldo.
+Gestão de evaporadoras e condensadoras por obra: estoque importado do Supra, agrupamento ARNU/CRNU e ARUN/CRUN, pedidos, entregas parciais e histórico com responsáveis. O Supra continua sendo a fonte oficial do saldo.
 
 ## Configurar e executar
 
@@ -45,3 +45,5 @@ Configuração de publicação com Gunicorn em `render.yaml`; siga [PUBLICAR.md]
 ## Instalar como aplicativo
 
 A interface é uma PWA instalável no computador, Android e iPhone. Instruções em [INSTALAR.md](INSTALAR.md). Necessita da versão atual publicada com HTTPS. O service worker não armazena dados privados nem oferece gravação offline; as informações continuam no Supabase.
+
+Para validar classificação, agrupamento e referências legadas dos modelos: `node tests/models.cjs`.
