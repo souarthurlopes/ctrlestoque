@@ -198,7 +198,7 @@ function conferir(){const G=grupos();
 /* ---------- telas ---------- */
 const vEst=()=>`<div class="cd"><h2>Importar estoque do Supra</h2><p class="mu">No Supra, exporte <b>Posição do Estoque</b> e envie o arquivo (.xls, .xlsx ou .csv). O saldo anterior é substituído; obras e equipamentos não são afetados. Evaporadoras ARNU/CRNU e condensadoras ARUN/CRUN com o restante do modelo idêntico são agrupadas e têm os saldos somados. Modelos com outras diferenças permanecem separados.</p>
 <input type="file" id="arq" accept=".xls,.xlsx,.csv"></div>
-<div class="cd"><h2>Estoque atual (${Object.keys(grupos()).length} modelos · ${S.estoque.length} itens da planilha)</h2><div class="row"><label>Buscar<input id="q" placeholder="modelo"></label>
+<div class="cd"><h2>Estoque atual (${Object.keys(grupos()).length} modelos · ${S.estoque.length} itens da planilha)</h2><div class="row"><label>Buscar por qualquer parte do modelo<input id="q" type="search" placeholder="Ex.: 48, 36, 07GS ou 48GV"></label>
 <label>&nbsp;<span><input type="checkbox" id="sv"> só com saldo</span></label></div><div id="tbEst"></div></div>`;
 function fillEst(){const q=($("#q").value||"").toLowerCase(),sv=$("#sv").checked,
  l=Object.values(grupos()).filter(g=>(!sv||g.saldo>0)&&correspondeBusca(g,q)).sort((a,b)=>a.label.localeCompare(b.label));
@@ -212,7 +212,7 @@ function vEq(){if(!S.obras.length||!S.estoque.length)return`<div class="cd">Cada
  const it=S.itens.filter(i=>i.obra==obraSel),G=grupos(),op=a=>a.map(x=>`<option>${x}</option>`).join("");
  return`<div class="cd"><div class="row"><label>Obra<select data-f="obra">${S.obras.map(o=>`<option value="${o.id}" ${o.id==obraSel?"selected":""}>${esc(o.nome)}</option>`).join("")}</select></label></div></div>
 <div class="cd"><h2>Adicionar equipamento</h2><div class="row"><label>Tipo<select data-f="tp">${["Todos","Evaporadora","Condensadora","Outros"].map(t=>`<option ${t==tipoSel?"selected":""}>${t}</option>`).join("")}</select></label>
-<label>Filtrar<input id="bq" placeholder="modelo"></label></div>
+<label>Buscar por qualquer parte do modelo<input id="bq" type="search" placeholder="Ex.: 48, 36, 07GS ou 48GV"></label></div>
 <div class="row" style="margin-top:8px"><label style="flex:1 1 100%">Modelo<select id="pp" size="6"></select></label>
 <label>Qtd<input id="qq" type="number" min="1" value="1" style="width:70px"></label><label>Ambiente / pavimento<input id="am"></label>
 <label>Status<select id="ss">${op(ST)}</select></label><label>Nº de série<input id="se"></label><button class="b" data-act="addItem">Adicionar</button></div></div>

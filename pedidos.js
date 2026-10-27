@@ -16,6 +16,20 @@ async function gravarPedido(alterar) {
     return false;
   }
 }
+function camposModeloPedido(G){
+ return `<label>Buscar equipamento<input type="search" data-busca-modelos placeholder="Parte do modelo: 48, 36, 07GS…" autocomplete="off"></label>
+ <label>Equipamento<select name="modelo" required><option value="">Selecione um modelo</option>${Object.values(G).map(g=>`<option value="${esc(g.chave)}">${esc(g.label)} · saldo ${g.saldo}</option>`).join("")}</select><small data-contagem-modelos aria-live="polite">${Object.keys(G).length} modelos disponíveis</small></label>`;
+}
+document.addEventListener('input',e=>{
+ if(!e.target.matches('[data-busca-modelos]'))return;
+ const form=e.target.closest('form'),select=form.querySelector('select[name="modelo"]'),anterior=select.value;
+ const lista=Object.values(gruposClimatizacao()).filter(g=>correspondeBusca(g,e.target.value)).sort((a,b)=>a.label.localeCompare(b.label));
+ select.replaceChildren(new Option(lista.length?'Selecione um modelo':'Nenhum modelo encontrado',''));
+ lista.forEach(g=>select.add(new Option(g.label+' · saldo '+g.saldo,g.chave)));
+ if(lista.some(g=>g.chave===anterior))select.value=anterior;
+ else if(lista.length===1)select.value=lista[0].chave;
+ form.querySelector('[data-contagem-modelos]').textContent=lista.length+' modelos encontrados';
+});
 function vPedidos() {
   const G = gruposClimatizacao();
   const status = p => {
@@ -28,14 +42,14 @@ function vPedidos() {
   <form id="novoPedido"><div class="row">
   <label>Obra / destino<select name="obra" required>${S.obras.map(o => `<option value="${o.id}">${esc(o.nome)}</option>`).join('')}</select></label>
   <label>Solicitante<input name="solicitante" required maxlength="150"></label>
-  <label>Equipamento<select name="modelo" required>${Object.values(G).map(g => `<option value="${esc(g.chave)}">${esc(g.label)}</option>`).join('')}</select></label>
+  ${camposModeloPedido(G)}
   <label>Quantidade<input name="qtd" type="number" min="1" step="1" required style="width:100px"></label>
   <label>Ambiente / pavimento<input name="ambiente" maxlength="150"></label>
   <button class="b" type="submit">Criar pedido</button></div><p class="mu">Após criar, você pode incluir outros equipamentos no mesmo pedido.</p></form>`}</div>
   ${pedidos().slice().reverse().map(p => `<section class="cd"><h2>${esc(p.numero)} · ${esc(p.obraNome)} <span class="${status(p) === 'Atendido' ? 'ok' : 'mu'}">· ${status(p)}</span></h2>
   <p class="mu">Solicitado por ${esc(p.solicitante)} · ${esc(dataPedido(p.criadoEm))}${p.criadoPor ? ` · Registrado por ${esc(p.criadoPor.nome)}` : ''}<br>Destino: ${esc(p.endereco || p.obraNome)}</p>
   ${tabela(['Equipamento', 'Ambiente', 'Solicitado', 'Entregue', 'Pendente'], p.linhas.map(l => [esc(l.modelo), esc(l.ambiente), l.qtd, entregue(p.id, l.id), l.qtd - entregue(p.id, l.id)]))}
-  <details style="margin-top:16px"><summary>Adicionar equipamento ao pedido</summary><form class="incluirLinha" data-pedido="${p.id}"><div class="row" style="margin-top:12px"><label>Equipamento<select name="modelo" required>${Object.values(G).map(g => `<option value="${esc(g.chave)}">${esc(g.label)}</option>`).join('')}</select></label><label>Quantidade<input name="qtd" type="number" min="1" step="1" required></label><label>Ambiente / pavimento<input name="ambiente" maxlength="150"></label><button class="b" type="submit">Incluir equipamento</button></div></form></details>
+  <details style="margin-top:16px"><summary>Adicionar equipamento ao pedido</summary><form class="incluirLinha" data-pedido="${p.id}"><div class="row" style="margin-top:12px">${camposModeloPedido(G)}<label>Quantidade<input name="qtd" type="number" min="1" step="1" required></label><label>Ambiente / pavimento<input name="ambiente" maxlength="150"></label><button class="b" type="submit">Incluir equipamento</button></div></form></details>
   ${p.linhas.some(l => l.qtd > entregue(p.id, l.id)) ? `<details style="margin-top:16px"><summary>Registrar entrega</summary><form class="registrarEntrega" data-pedido="${p.id}"><div class="row" style="margin-top:12px"><label>Equipamento<select name="linha" required>${p.linhas.filter(l => l.qtd > entregue(p.id, l.id)).map(l => `<option value="${l.id}">${esc(l.modelo)} · ${esc(l.ambiente || 'Sem ambiente')} · pendente ${l.qtd - entregue(p.id, l.id)}</option>`).join('')}</select></label><label>Quantidade entregue<input name="qtd" type="number" min="1" step="1" required></label><label>Entregue por<input name="responsavel" required maxlength="150"></label><label>Recebido por<input name="recebedor" required maxlength="150"></label><label>Referência da saída no Supra<input name="referencia" required maxlength="150" placeholder="Documento / lançamento"></label><button class="b" type="submit">Confirmar entrega</button></div><p class="mu">Confirme somente após registrar a saída no Supra. O horário atual será registrado.</p></form></details>` : ''}
   <details style="margin-top:16px"><summary>Histórico de atendimento (${entregas().filter(e => e.pedidoId === p.id).length})</summary>${tabela(['Data', 'Equipamento', 'Qtd', 'Entregue por', 'Recebido por', 'Saída Supra', 'Registrado por'], entregas().filter(e => e.pedidoId === p.id).map(e => [esc(dataPedido(e.em)), esc(e.modelo), e.qtd, esc(e.responsavel), esc(e.recebedor), esc(e.referencia), esc(e.criadoPor?.nome || 'Registro anterior ao login')]))}</details></section>`).join('') || '<div class="cd"><h2>Seus pedidos aparecerão aqui</h2><p class="mu">Registre a primeira solicitação para acompanhar as entregas por obra.</p></div>'}`;
 }
