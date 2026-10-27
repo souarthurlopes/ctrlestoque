@@ -30,3 +30,5 @@ vm.runInContext(html.slice(html.indexOf('const cabNormal='),html.indexOf('/* ---
 context.rows=[['Código','Produto','Und','Fabricante','Cód. Fabricante','Classificação','Saldo'],[10,'Unidade VRF','UN','LG','CRUN200LSS0','VRF',2]];
 vm.runInContext('globalThis.importado=extrair(rows)',context);assert.equal(context.importado.lista[0].tipo,'Condensadora');
 console.log('PASS: ARUN/CRUN e ARNU/CRNU, saldos, modelos distintos, importação/classificação, referências antigas, repetibilidade e histórico preservado.');
+
+assert.equal(vm.runInContext('tipoEquipamento({cod_fab:"CRUN36GV2A4",produto:"UNID EVAP LG 36.000 BTU/H MULTI-V"})',context),"Evaporadora");

@@ -9,6 +9,13 @@ assert.throws(()=>extract([header,['AC-1','Unidade','','','','','ERRO',10]]),/sa
 assert.throws(()=>extract([header,[null,'Unidade sem código','','','','',1,10]]),/nenhum item foi importado parcialmente/);
 assert.throws(()=>extract([['Código','Produto','Valor total'],[1,'Unidade',1000]]),/coluna de saldo/);
 assert.equal(extract([['Codigo','Produto','27/10/2026'],[1,'Unidade',2]]).lista[0].saldo,2);
+const supra=[['E','Código','Produto','Und','Fabricante','Cód. Fabricante','Classificação','Estoque em: ','Entradas','Saídas','Estoque em: '],
+ [null,null,null,null,null,null,null,'26/10/2026',null,null,'27/10/2026'],
+ [4,1,'UNID EVAP 07GS','UN','LG','ARNU07GSJE4','AR CONDICIONADO',2,0,0,2],
+ [4,2,'UNID EVAP 36GV','UN','LG','CRNU36GV2A4','AR CONDICIONADO',4,1,2,3],
+ [4,3,'UNID EVAP 48GV','UN','LG','CRNU48GV2A4','AR CONDICIONADO',1,0,1,0]];
+const parsed=extract(supra);assert.equal(parsed.lista.length,3);assert.equal(parsed.ref,'27/10/2026');
+assert.deepEqual(Array.from(parsed.lista,r=>r.saldo),[2,3,0]);
 (async()=>{
  const reader={read:()=>({SheetNames:['Instruções','Estoque'],Sheets:{'Instruções':[['Resumo']],Estoque:rows}}),utils:{sheet_to_json:s=>s}};c.window={XLSX:reader};c.XLSX=reader;c.file={arrayBuffer:async()=>new Uint8Array([0x50,0x4b]).buffer};
  const selected=await vm.runInContext('linhas(file)',c);assert.equal(selected,rows);

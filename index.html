@@ -112,6 +112,9 @@ function extrair(rows){const t=achaCab(rows);if(t<0)throw new Error("não encont
  const [cC,cP,cU,cF,cCF,cCl]=[cabCod,cabProd,["und","un","unidade"],["fabricante","marca"],["codfabricante","codigofabricante","codigodofabricante","modelo"],["classificacao","categoria"]].map(ix);
  let cSaldo=ix(["saldoatual","saldofisico","saldo","quantidade","qtd","qtde"]);
  if(cSaldo<0)cSaldo=h.findIndex(n=>n.startsWith("saldo"));
+ // Relatório Supra: saldo inicial e final compartilham o título “Estoque em:”.
+ // A data fica na linha seguinte; a coluna à direita é o saldo final.
+ if(cSaldo<0){const estoque=h.map((name,i)=>name==="estoqueem"?i:-1).filter(i=>i>=0);cSaldo=estoque.at(-1)??-1;}
  if(cSaldo<0)cSaldo=rows[t].findIndex(n=>/^\d{2}[/-]\d{2}[/-]\d{2,4}$/.test(String(n??"").trim()));
  if(cSaldo<0)throw new Error("não identifiquei a coluna de saldo/quantidade. Nenhum saldo foi substituído");
  const out=[];
@@ -126,7 +129,8 @@ function extrair(rows){const t=achaCab(rows);if(t<0)throw new Error("não encont
    tipo:tipoEquipamento({produto:p,cod_fab:r[cCF]}),
    btu:k?k[1]*1000:b?(parseInt(b[1].replace(/\./g,""))||null):null,hp:hp?+hp[1]:null,saldo:saldoPlanilha(r[cSaldo],index+1)});
  }
- return{lista:out,ref:new Date().toLocaleString("pt-BR")};
+ const dataRelatorio=String(rows[t+1]?.[cSaldo]??"").trim();
+ return{lista:out,ref:/^\d{2}[/-]\d{2}[/-]\d{2,4}$/.test(dataRelatorio)?dataRelatorio:new Date().toLocaleString("pt-BR")};
 }
 
 /* ---------- agrupamento por modelo ---------- */
@@ -144,9 +148,12 @@ const chaveModelo=value=>{
 };
 function tipoEquipamento(e){
  const m=modeloEst(e),s=String(e.produto||"").toUpperCase();
+ // A descrição explícita tem prioridade quando o código do relatório diverge.
+ if(s.includes("EVAP"))return "Evaporadora";
+ if(/\bCOND(?:ENSADOR[A-Z]*)?\b/.test(s))return "Condensadora";
  if(/^[AC]RUN/.test(m))return "Condensadora";
  if(/^[AC]RNU/.test(m))return "Evaporadora";
- return s.includes("EVAP")?"Evaporadora":s.includes("COND")?"Condensadora":e.tipo||"Outros";
+ return e.tipo||"Outros";
 }
 const chaveEst=e=>{const m=modeloEst(e);
  return /^[A-Z0-9][A-Z0-9.\-]{4,}$/.test(m)&&!m.endsWith("-")?chaveModelo(m):"cod:"+e.codigo;
