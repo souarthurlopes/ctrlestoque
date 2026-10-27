@@ -57,6 +57,25 @@ class SupabaseSQL(unittest.TestCase):
         data=json.dumps(state).replace("'","''")
         return self.call('controlai_write_state',f"{revision},'{data}'::jsonb,{str(restore).lower()}",user=user,failure=failure)
 
+    def test_create_work_with_legacy_counter(self):
+        current=self.call('controlai_read_state')
+        state=current['state']
+        state['obras']=[dict(id=1,nome='Obra existente')]
+        state['nid']=1 # Contador legado desatualizado.
+        current=self.save(state,current['revision'])
+        duplicate=json.loads(json.dumps(current['state']))
+        duplicate['obras'].append(dict(id=1,nome='Nova obra'))
+        self.assertIn('Identificador duplicado',self.save(duplicate,current['revision'],failure=True))
+        corrected=json.loads(json.dumps(current['state']))
+        corrected['obras'].append(dict(id=2,nome='Nova obra'))
+        corrected['nid']=3
+        saved=self.save(corrected,current['revision'])
+        self.assertEqual([o['nome'] for o in saved['state']['obras']],['Obra existente','Nova obra'])
+        self.assertEqual(saved['state']['pedidos'],current['state']['pedidos'])
+        diagnostic=self.sql((Path(__file__).resolve().parents[1]/'supabase/diagnostico-obras.sql').read_text())
+        self.assertEqual(diagnostic.split('|'),['3','2','0','t','t','f'])
+        self.assertEqual(self.call('controlai_read_state')['revision'],saved['revision'])
+
     def test_policies_roles_history_and_quantities(self):
         self.sql('select public.controlai_me()',role='anon',failure=True)
         self.sql('select * from public.controlai_state',user=1,failure=True)

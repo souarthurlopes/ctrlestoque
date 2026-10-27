@@ -1,4 +1,5 @@
 import http.client
+import io
 import json
 import threading
 import unittest
@@ -95,6 +96,19 @@ class SupabaseBridge(unittest.TestCase):
         self.assertEqual(self.request('/api/state')[0],401)
 
 class Transport(unittest.TestCase):
+    def test_write_error_has_safe_diagnostic_without_exposing_payload(self):
+        client=Supabase(dict(url='https://testproject.supabase.co',publishable_key='sb_publishable_test'))
+        for code,message in [('P0001','Identificador duplicado'),('42702','private SQL detail')]:
+            body=json.dumps(dict(code=code,message=message,details='private row and credentials')).encode()
+            error=urllib.error.HTTPError('https://testproject.supabase.co/rest/v1/rpc/controlai_write_state',400,'Bad Request',{},io.BytesIO(body))
+            with patch('urllib.request.urlopen',side_effect=error), self.assertLogs('controlai.supabase',level='WARNING') as logs:
+                with self.assertRaises(RemoteError) as raised:
+                    client.rpc('controlai_write_state','private-session-token',p_state={'private':'payload'})
+            self.assertIn(code,str(raised.exception))
+            self.assertNotIn('private',str(raised.exception))
+            self.assertNotIn('private',' '.join(logs.output))
+            self.assertEqual(raised.exception.status,400)
+
     def test_transport_uses_public_key_and_user_token(self):
         client=Supabase(dict(url='https://testproject.supabase.co',publishable_key='sb_publishable_test'))
         with patch('urllib.request.urlopen') as open_url:

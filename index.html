@@ -60,6 +60,14 @@ let S={estoque:[],dataEst:"",obras:[],itens:[],nid:1},aba="est",obraSel=null,tip
 
 const $=s=>document.querySelector(s);
 const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function proximoId(){
+ const usados=[...S.obras,...S.itens].map(x=>Number(x.id)).filter(Number.isSafeInteger);
+ const maior=usados.reduce((max,id)=>Math.max(max,id),0);
+ const contador=Number(S.nid);
+ const id=Math.max(maior+1,Number.isSafeInteger(contador)&&contador>0?contador:1);
+ if(!Number.isSafeInteger(id)||!Number.isSafeInteger(id+1))throw Error("Limite de identificadores atingido.");
+ S.nid=id+1;return id;
+}
 const save=()=>salvarServidor();
 const flash=t=>{msg=t;render()};
 const tabela=(c,r)=>`<div class="sc"><table><tr>${c.map(x=>`<th>${esc(x)}</th>`).join("")}</tr>${r.map(l=>`<tr>${l.map(x=>`<td>${x}</td>`).join("")}</tr>`).join("")||`<tr><td colspan="${c.length}" class="mu">Nada por aqui ainda.</td></tr>`}</table></div>`;
@@ -201,14 +209,18 @@ async function baixar(nome,data){try{const d=await window.claude?.use("downloads
  if(d)await d.save({filename:nome,data});
  else{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data]));a.download=nome;document.body.appendChild(a);a.click();a.remove()}
  flash("Arquivo salvo: "+nome)}catch(e){if(e.code!="declined")flash("Não foi possível baixar ("+(e.code||e.message)+")")}}
-document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act,id=+b.dataset.id;
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act,id=+b.dataset.id;
  if(a=="aba"){aba=b.dataset.a;render()}
  else if(a=="addObra"){const n=$("#on").value.trim();if(!n)return flash("Digite o nome da obra.");
   if(S.obras.some(o=>o.nome.toLowerCase()==n.toLowerCase()))return flash("Já existe uma obra com esse nome.");
-  S.obras.push({id:S.nid++,nome:n,end:$("#oe").value,resp:$("#or").value});save();render()}
+  const anterior=JSON.stringify(S);b.disabled=true;
+  try{
+   S.obras.push({id:proximoId(),nome:n,end:$("#oe").value,resp:$("#or").value});
+   if(await save())render();else S=JSON.parse(anterior);
+  }catch(error){S=JSON.parse(anterior);flash(error.message)}finally{b.disabled=false}}
  else if(a=="delObra"){if((S.pedidos||[]).some(p=>p.obraId==id))return flash("Esta obra possui pedidos registrados e não pode ser excluída.");if(pendDel!=id){pendDel=id;return render()}S.obras=S.obras.filter(o=>o.id!=id);S.itens=S.itens.filter(i=>i.obra!=id);pendDel=null;save();render()}
  else if(a=="addItem"){const c=$("#pp").value;if(!c)return flash("Escolha um produto na lista.");
-  S.itens.push({id:S.nid++,obra:obraSel,chave:c,qtd:Math.max(1,parseInt($("#qq").value)||1),amb:$("#am").value,status:$("#ss").value,serie:$("#se").value});save();render()}
+  S.itens.push({id:proximoId(),obra:obraSel,chave:c,qtd:Math.max(1,parseInt($("#qq").value)||1),amb:$("#am").value,status:$("#ss").value,serie:$("#se").value});save();render()}
  else if(a=="delItem"){S.itens=S.itens.filter(i=>i.id!=id);save();render()}
 else if(a=="csvCompras"){const{cl,obras}=compras();
   baixar("lista_de_compras.csv",csv([["TOTAL A COMPRAR"],["Modelo","Tipo","Necessário","Saldo Supra","Comprar"],...cl.map(r=>[r.modelo,r.tipo,r.necessario,r.saldo,r.comprar]),["TOTAL DE MÁQUINAS FALTANTES","","","",cl.filter(r=>r.tipo=="Evaporadora"||r.tipo=="Condensadora").reduce((a,r)=>a+r.comprar,0)],[],

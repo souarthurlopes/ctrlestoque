@@ -47,3 +47,5 @@ Configuração de publicação com Gunicorn em `render.yaml`; siga [PUBLICAR.md]
 A interface é uma PWA instalável no computador, Android e iPhone. Instruções em [INSTALAR.md](INSTALAR.md). Necessita da versão atual publicada com HTTPS. O service worker não armazena dados privados nem oferece gravação offline; as informações continuam no Supabase.
 
 Para validar classificação, agrupamento e referências legadas dos modelos: `node tests/models.cjs`.
+
+Regressão do cadastro com contador legado: `node tests/obras.cjs`. O cadastro aguarda confirmação do servidor; erros do banco mostram código seguro e são registrados sem payload/tokens. Para investigar falhas persistentes, `supabase/diagnostico-obras.sql` faz apenas leituras de contadores e configuração da função, sem retornar nomes ou conteúdos dos pedidos.

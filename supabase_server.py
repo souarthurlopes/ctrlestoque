@@ -2,6 +2,8 @@
 Não utiliza service_role nem salva estado/senhas em disco.
 """
 import json
+import logging
+import re
 import os
 from http.cookies import SimpleCookie
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -47,7 +49,23 @@ class Supabase:
                 result = json.loads(error.read())
             except (ValueError, OSError):
                 result = {}
-            code = result.get('code', '')
+            code = str(result.get('code', ''))
+            safe_code = code if re.fullmatch(r'[A-Z0-9]{5,12}', code) else 'UNKNOWN'
+            # Apenas códigos e nome da função: nunca payload, SQL, senha ou token.
+            operation = path.split('?',1)[0]
+            logging.getLogger('controlai.supabase').warning('upstream_error operation=%s status=%s code=%s', operation, error.code, safe_code)
+            validation = {
+                'Identificador duplicado':'O cadastro contém identificadores repetidos. Atualize o app antes de cadastrar novamente.',
+                'Identificador inválido':'O cadastro tem um identificador inválido.',
+                'Histórico não pode ser excluído':'Uma alteração tentou remover pedidos ou entregas do histórico.',
+                'Entregas não podem ser editadas':'Uma entrega já registrada não pode ser modificada.',
+                'Preserve os dados históricos do pedido':'Uma alteração tentou modificar dados históricos de um pedido.',
+                'Entrega excede a quantidade pendente':'A quantidade entregue ultrapassa o total solicitado.',
+                'Quantidade entregue inválida':'Informe uma quantidade inteira maior que zero.',
+            }
+            message = validation.get(result.get('message')) if code == 'P0001' else None
+            if message:
+                raise RemoteError(400, message + ' (código ' + safe_code + ')') from None
             if code in ('PGRST202','PGRST205','42883','42P01'):
                 raise RemoteError(503, 'Execute supabase/setup.sql no SQL Editor deste projeto antes de continuar.') from None
             if error.code == 429:
@@ -57,7 +75,7 @@ class Supabase:
             if error.code in (401,403,409):
                 message = {401:'Entre na sua conta para continuar.',403:'Esta conta não está autorizada para esta operação.',409:'Outra sessão alterou os dados. Recarregue a página.'}[error.code]
                 raise RemoteError(error.code, message) from None
-            raise RemoteError(400 if error.code == 400 else 502, 'O Supabase recusou a alteração. Confira os campos, as quantidades e preserve o histórico.') from None
+            raise RemoteError(400 if error.code == 400 else 502, 'Não foi possível salvar no Supabase (código ' + safe_code + '). Informe esse código para investigarmos; os dados existentes foram preservados.') from None
         except (urllib.error.URLError, TimeoutError, OSError):
             raise RemoteError(503, 'Não foi possível conectar ao Supabase. Nenhum dado foi salvo localmente.') from None
 
