@@ -1,6 +1,7 @@
 /* Pedidos preservam os dados do atendimento. O saldo continua sendo do Supra. */
 const pedidos = () => S.pedidos || [];
-const gruposClimatizacao = () => Object.fromEntries(Object.entries(grupos()).filter(([, g]) => ['Evaporadora', 'Condensadora'].includes(g.tipo)));
+// A planilha é a fonte de itens: modelos ainda não classificados também ficam disponíveis.
+const gruposClimatizacao = () => grupos();
 const entregas = () => S.entregas || [];
 const entregue = (pedido, linha) => entregas().filter(e => e.pedidoId === pedido && e.linhaId === linha).reduce((n, e) => n + e.qtd, 0);
 const dataPedido = value => new Date(value).toLocaleString('pt-BR');

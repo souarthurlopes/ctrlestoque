@@ -26,8 +26,7 @@ assert.equal(context.S.itens[0].chave,'RUN100LSS0');assert.equal(context.S.itens
 assert.equal(JSON.stringify([context.S.pedidos,context.S.entregas]),before);
 const repeat=JSON.stringify(context.S);vm.runInContext('prep()',context);assert.equal(JSON.stringify(context.S),repeat);
 // Importações novas classificam pelo modelo mesmo sem a palavra COND.
-vm.runInContext(html.slice(html.indexOf('function extrair('),html.indexOf('/* ---------- agrupamento')),context);
-vm.runInContext('globalThis.achaCab=rows=>rows.findIndex(r=>r&&r.includes("Código"))',context);
+vm.runInContext(html.slice(html.indexOf('const cabNormal='),html.indexOf('/* ---------- agrupamento')),context);
 context.rows=[['Código','Produto','Und','Fabricante','Cód. Fabricante','Classificação','Saldo'],[10,'Unidade VRF','UN','LG','CRUN200LSS0','VRF',2]];
 vm.runInContext('globalThis.importado=extrair(rows)',context);assert.equal(context.importado.lista[0].tipo,'Condensadora');
 console.log('PASS: ARUN/CRUN e ARNU/CRNU, saldos, modelos distintos, importação/classificação, referências antigas, repetibilidade e histórico preservado.');

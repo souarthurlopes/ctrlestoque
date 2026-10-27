@@ -49,3 +49,11 @@ A interface é uma PWA instalável no computador, Android e iPhone. Instruções
 Para validar classificação, agrupamento e referências legadas dos modelos: `node tests/models.cjs`.
 
 Regressão do cadastro com contador legado: `node tests/obras.cjs`. O cadastro aguarda confirmação do servidor; erros do banco mostram código seguro e são registrados sem payload/tokens. Para investigar falhas persistentes, `supabase/diagnostico-obras.sql` faz apenas leituras de contadores e configuração da função, sem retornar nomes ou conteúdos dos pedidos.
+
+## Importar todos os itens do Excel
+
+A planilha determina os itens disponíveis: modelos sem classificação também aparecem em estoque, obras e pedidos. Não há cortes de 200/300 modelos nas listas; saldos zerados ficam visíveis por padrão. A busca inclui descrições originais e códigos de fabricante, tolerando espaços/hífens em trechos como 48GV, 36GV e 07GS. A tela informa quantidade de linhas importadas e modelos agrupados separadamente.
+
+A importação preserva códigos alfanuméricos e zeros iniciais, interpreta saldo numérico em formato brasileiro e procura uma aba com Código e Produto/Descrição, em vez de assumir a primeira aba do arquivo. Mais de uma aba de estoque exige exportar uma por arquivo para evitar duplicação. Se uma linha de item estiver incompleta ou tiver saldo inválido, a importação inteira é recusada antes de substituir o estoque; totais, linhas vazias e cabeçalhos repetidos não são itens. A gravação só é confirmada após resposta do servidor. Para recuperar itens descartados por uma versão antiga, reimporte o arquivo original.
+
+Regressões: `node tests/importacao.cjs`, `node tests/estoque.cjs`, `node tests/models.cjs` e `node tests/obras.cjs`. Também foi validado no navegador um XLSX sintético real com 401 itens, usando a mesma versão do leitor Excel; o arquivo real do cliente ainda deve ser comparado.
