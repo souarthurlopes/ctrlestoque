@@ -99,6 +99,14 @@ class SupabaseSQL(unittest.TestCase):
         s=self.save(s['state'],s['revision'],user=1)
         self.assertEqual(s['state']['entregas'][0]['criadoPor']['nome'],'Admin Test')
         self.assertEqual(s['state']['estoque'][0]['saldo'],10)
+        # Edição de cadastro mantém ID, pedidos e entregas históricos.
+        pedidos_antes=json.loads(json.dumps(s['state']['pedidos']))
+        entregas_antes=json.loads(json.dumps(s['state']['entregas']))
+        s['state']['obras'][0].update(nome='Obra revisada',end='Novo endereço',resp='Novo responsável')
+        s=self.save(s['state'],s['revision'],user=2)
+        self.assertEqual(s['state']['obras'][0]['id'],1)
+        self.assertEqual(s['state']['pedidos'],pedidos_antes)
+        self.assertEqual(s['state']['entregas'],entregas_antes)
         bad=json.loads(json.dumps(s['state']));bad['entregas'][0]['qtd']=3
         self.save(bad,s['revision'],failure=True)
         bad=json.loads(json.dumps(s['state']));bad['entregas']=[]

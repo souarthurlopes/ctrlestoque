@@ -56,7 +56,7 @@ button:focus-visible{outline:3px solid #8caafa;outline-offset:3px}
 <main id="main"></main>
 <script>
 const ST=["Previsto","Reservado","A caminho","Enviado","Instalado"],COMPRA=["Previsto","Reservado"],KEY="ctrl_obras_v1";
-let S={estoque:[],dataEst:"",obras:[],itens:[],nid:1},aba="est",obraSel=null,tipoSel="Todos",msg="",pendDel=null;
+let S={estoque:[],dataEst:"",obras:[],itens:[],nid:1},aba="est",obraSel=null,tipoSel="Todos",msg="",pendDel=null,obraEdicaoId=null;
 
 const $=s=>document.querySelector(s);
 const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -203,10 +203,12 @@ const vEst=()=>`<div class="cd"><h2>Importar estoque do Supra</h2><p class="mu">
 function fillEst(){const q=($("#q").value||"").toLowerCase(),sv=$("#sv").checked,
  l=Object.values(grupos()).filter(g=>(!sv||g.saldo>0)&&correspondeBusca(g,q)).sort((a,b)=>a.label.localeCompare(b.label));
  $("#tbEst").innerHTML=tabela(["Modelo","Tipo","Variações no Supra","Saldo total"],l.map(g=>[esc(g.label),g.tipo,esc(g.vars.join(" + ")),g.saldo]))+`<p class="mu">${l.length} de ${Object.keys(grupos()).length} modelos exibidos.${sv?' O filtro “só com saldo” oculta modelos com saldo zero ou negativo.':''}</p>`}
-const vObras=()=>`<div class="cd"><h2>Nova obra</h2><div class="row"><label>Nome<input id="on"></label><label>Endereço<input id="oe"></label><label>Responsável<input id="or"></label>
-<button class="b" data-act="addObra">Cadastrar</button></div></div>
-<div class="cd"><h2>Obras</h2>${tabela(["Obra","Endereço","Responsável","Itens",""],S.obras.map(o=>[esc(o.nome),esc(o.end),esc(o.resp),S.itens.filter(i=>i.obra==o.id).length,
- `<button class="b g" data-act="delObra" data-id="${o.id}">${pendDel==o.id?"Confirmar exclusão?":"Excluir"}</button>`]))}</div>`;
+function vObras(){const editando=S.obras.find(o=>o.id==obraEdicaoId);
+ return `<div class="cd"><h2>${editando?"Editar obra":"Nova obra"}</h2><div class="row"><label>Nome<input id="on" maxlength="150" value="${esc(editando?.nome||"")}"></label><label>Endereço<input id="oe" maxlength="300" value="${esc(editando?.end||"")}"></label><label>Responsável<input id="or" maxlength="150" value="${esc(editando?.resp||"")}"></label>
+<button class="b" data-act="${editando?"saveObra":"addObra"}">${editando?"Salvar alterações":"Cadastrar"}</button>${editando?'<button class="b g" data-act="cancelObra">Cancelar</button>':""}</div>${editando?'<p class="mu">Pedidos e entregas anteriores mantêm os dados registrados no atendimento.</p>':""}</div>
+<div class="cd"><h2>Obras</h2>${tabela(["Obra","Endereço","Responsável","Itens","Ações"],S.obras.map(o=>[esc(o.nome),esc(o.end),esc(o.resp),S.itens.filter(i=>i.obra==o.id).length,
+ `<button class="b g" data-act="editObra" data-id="${esc(o.id)}">Editar</button> <button class="b g" data-act="delObra" data-id="${esc(o.id)}">${pendDel==o.id?"Confirmar exclusão?":"Excluir"}</button>`]))}</div>`;
+}
 function vEq(){if(!S.obras.length||!S.estoque.length)return`<div class="cd">Cadastre uma obra e importe o estoque do Supra primeiro.</div>`;
  if(!S.obras.some(o=>o.id==obraSel))obraSel=S.obras[0].id;
  const it=S.itens.filter(i=>i.obra==obraSel),G=grupos(),op=a=>a.map(x=>`<option>${x}</option>`).join("");
@@ -257,6 +259,18 @@ async function baixar(nome,data){try{const d=await window.claude?.use("downloads
  flash("Arquivo salvo: "+nome)}catch(e){if(e.code!="declined")flash("Não foi possível baixar ("+(e.code||e.message)+")")}}
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act,id=+b.dataset.id;
  if(a=="aba"){aba=b.dataset.a;render()}
+ else if(a=="editObra"){const obra=S.obras.find(o=>o.id==id);if(!obra)return flash("Obra não encontrada.");obraEdicaoId=obra.id;render();$("#on").focus();$("#on").scrollIntoView({behavior:"smooth",block:"center"});}
+ else if(a=="cancelObra"){obraEdicaoId=null;render();}
+ else if(a=="saveObra"){
+  const obra=S.obras.find(o=>o.id==obraEdicaoId);if(!obra)return flash("Obra não encontrada.");
+  const nome=$("#on").value.trim();if(!nome)return flash("Digite o nome da obra.");
+  if(S.obras.some(o=>o.id!=obra.id&&o.nome.trim().toLowerCase()==nome.toLowerCase()))return flash("Já existe uma obra com esse nome.");
+  const anterior=JSON.stringify(S);b.disabled=true;
+  try{
+   Object.assign(obra,{nome,end:$("#oe").value.trim(),resp:$("#or").value.trim()});
+   if(await save()){obraEdicaoId=null;flash("Obra atualizada.");}else S=JSON.parse(anterior);
+  }catch(error){S=JSON.parse(anterior);flash(error.message);}finally{b.disabled=false;}
+ }
  else if(a=="addObra"){const n=$("#on").value.trim();if(!n)return flash("Digite o nome da obra.");
   if(S.obras.some(o=>o.nome.toLowerCase()==n.toLowerCase()))return flash("Já existe uma obra com esse nome.");
   const anterior=JSON.stringify(S);b.disabled=true;

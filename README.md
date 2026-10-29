@@ -2,7 +2,21 @@
 
 Gestão de evaporadoras e condensadoras por obra: estoque importado do Supra, agrupamento ARNU/CRNU e ARUN/CRUN, pedidos, entregas parciais e histórico com responsáveis. O Supra continua sendo a fonte oficial do saldo.
 
-## Configurar e executar
+## Cloudflare Workers
+
+A hospedagem está preparada para migrar do Render ao Cloudflare Workers. Guia: [CLOUDFLARE.md](CLOUDFLARE.md). O banco, os logins e os dados continuam no mesmo Supabase. A publicação remota e a confirmação do novo endereço ainda dependem da conta Cloudflare.
+
+```sh
+npm ci
+npm test
+npm run check:worker
+npm run dev
+```
+
+Node 22+, dependências fixadas em `package-lock.json`. O dry-run não publica. O Worker mantém a API e os cookies HttpOnly; o build publica somente a lista explícita de arquivos estáticos. Em **Obras**, o botão **Editar** permite alterar nome, endereço e responsável, mantendo IDs e vínculos históricos.
+
+## Configurar e executar a versão Python de retorno
+
 
 O backend padrão é **Supabase**. Siga [supabase/LEIA-ME.md](supabase/LEIA-ME.md) para executar o SQL no seu projeto e criar o primeiro administrador no Supabase Auth. O usuário informou executar o SQL e criar a conta. A conectividade com a API Auth foi confirmada; login e gravação reais ainda precisam ser validados.
 

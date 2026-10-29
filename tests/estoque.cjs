@@ -11,7 +11,7 @@ assert.equal(context.a.length,1);assert.equal(context.a[0].saldo,4);assert.equal
 const groups={};for(let i=0;i<401;i++){groups['model'+i]={chave:'model'+i,label:'Model '+String(i).padStart(3,'0'),tipo:'Evaporadora',saldo:i===400?0:1,vars:['Model '+i],busca:[]};}
 const elements={'#q':{value:''},'#sv':{checked:true},'#tbEst':{},'#bq':{value:''},'#pp':{}};
 context.$=s=>elements[s];context.grupos=()=>groups;context.tipoSel='Evaporadora';context.esc=s=>s;context.tabela=(_,rows)=>{context.rows=rows;return 'table';};
-vm.runInContext(html.slice(html.indexOf('function fillEst()'),html.indexOf('const vObras=')),context);
+vm.runInContext(html.slice(html.indexOf('function fillEst()'),html.indexOf('function vObras(')),context);
 vm.runInContext(html.slice(html.indexOf('function fillProd()'),html.indexOf('const bad=')),context);
 vm.runInContext('fillEst();fillProd();',context);
 assert.equal(context.rows.length,400);assert.equal((elements['#pp'].innerHTML.match(/<option /g)||[]).length,401);

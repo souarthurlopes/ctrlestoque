@@ -1,6 +1,6 @@
 # Instalar o ControlAI
 
-Depois de o Render concluir a publicação e mostrar **Live**, abra o endereço HTTPS real do serviço. A versão inclui manifesto, ícones e service worker para instalação como PWA. Os dados são compartilhados via Supabase, cada pessoa usa sua própria conta.
+Depois da publicação no Cloudflare Workers, abra o endereço HTTPS real mostrado no painel. Se ainda estiver na versão Render, aguarde o status Live. Ao mudar de domínio, instale novamente a partir do novo endereço. A versão inclui manifesto, ícones e service worker para instalação como PWA. Os dados são compartilhados via Supabase, cada pessoa usa sua própria conta.
 
 ## Computador
 

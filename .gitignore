@@ -7,3 +7,10 @@ backups/
 *.dump
 *.dump.gpg
 *.asc
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example

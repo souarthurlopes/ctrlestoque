@@ -1,3 +1,5 @@
+> A hospedagem atual está preparada para Cloudflare Workers. Siga [CLOUDFLARE.md](CLOUDFLARE.md). Este guia Render fica como referência de retorno durante a migração.
+
 # Publicar o ControlAI e obter um endereço
 
 O projeto está preparado para um Web Service Python no Render. Ainda não foi publicado: o endereço só existe depois que o serviço termina a implantação. Não é preciso senha de banco nem service_role para hospedar o app; a conexão usa a configuração pública do projeto e o login de cada usuário.
