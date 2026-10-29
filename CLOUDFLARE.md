@@ -6,7 +6,7 @@ A versão Workers mantém o mesmo Supabase e as mesmas contas. Não é necessár
 
 1. No Cloudflare, abra **Workers & Pages → Create application → Import a repository** (ou **Connect GitHub**, conforme o painel).
 2. Autorize e selecione `souarthurlopes/ctrlestoque`, branch `main`.
-3. Nome do Worker: **estoqai**, igual ao `name` em `wrangler.jsonc`. Deixe o diretório raiz na raiz do repositório.
+3. Nome do Worker: **estqai**, igual ao `name` em `wrangler.jsonc`. Deixe o diretório raiz na raiz do repositório.
 4. Instalação: `npm ci`. Se houver campo de build, use `npm run build`.
 5. Comando de publicação: `npx wrangler deploy`. O `wrangler.jsonc` também executa o build, de forma repetível, antes de publicar.
 6. Publique e abra o endereço HTTPS atribuído ao Worker. O endereço definitivo aparece no painel; não foi criado por preparar os arquivos localmente.
@@ -46,3 +46,5 @@ O Worker usa a chave publishable e o JWT de cada usuário. O Supabase continua v
 Workers Free tem limites de uso e o painel informa a disponibilidade na sua conta. A migração de hospedagem não ativa backups: o agendamento criptografado no GitHub continua uma etapa separada em `BACKUPS.md`, ainda pendente de configuração e validação real.
 
 A versão Python do Render foi preservada como opção de retorno durante a troca. Sua remoção do código não é necessária para desligar o serviço no painel depois da validação.
+
+O Worker atual informado pelo usuário é `https://estqai.arthurlopescorporativo.workers.dev/`; o nome `estqai` em wrangler.jsonc deve coincidir com esse serviço. O transporte usa `redirect: manual`, aceito pelo workerd, e rejeita respostas 3xx sem seguir Location com credenciais. `npm run test:runtime` valida o login do bundle real com Supabase simulado; não usa contas reais.

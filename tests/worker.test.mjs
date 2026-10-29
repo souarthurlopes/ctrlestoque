@@ -49,7 +49,7 @@ test('login delegates to Supabase; tokens only go to secure HttpOnly cookies',as
   const {request,calls}=setup();const r=await request('/api/auth/login',{method:'POST',body:{email:'USER@EXAMPLE.TEST',senha:'test-password'}});
   assert.equal(r.status,200);const data=await r.json();assert.equal(data.user.papel,'admin');assert.ok(data.csrf);assert.equal(data.access_token,undefined);assert.equal(data.refresh_token,undefined);
   const cookies=r.headers.getSetCookie();assert.equal(cookies.length,3);cookies.forEach(c=>{assert.match(c,/HttpOnly/);assert.match(c,/Secure/);assert.match(c,/SameSite=Strict/);});
-  const first=calls[0];assert.equal(first.url,'https://testproject.supabase.co/auth/v1/token?grant_type=password');assert.equal(first.init.headers.apikey,'sb_publishable_test');assert.equal(JSON.parse(first.init.body).email,'user@example.test');assert.equal(first.init.redirect,'error');
+  const first=calls[0];assert.equal(first.url,'https://testproject.supabase.co/auth/v1/token?grant_type=password');assert.equal(first.init.headers.apikey,'sb_publishable_test');assert.equal(JSON.parse(first.init.body).email,'user@example.test');assert.equal(first.init.redirect,'manual');
 });
 test('expired tokens refresh through Supabase without persistence in the browser database',async()=>{
   const ctx=setup({fetcher:async(url,init)=>{
@@ -112,4 +112,11 @@ test('request size and JSON checks run before sending data upstream',async()=>{
 test('build publishes only the explicit static allowlist',async()=>{
   const files=await readdir(new URL('../dist/public/',import.meta.url));assert.ok(files.includes('index.html'));assert.ok(!files.includes('worker'));assert.ok(!files.includes('supabase'));assert.ok(!files.includes('tests'));assert.ok(!files.includes('.env'));
   const page=await readFile(new URL('../dist/public/index.html',import.meta.url),'utf8');assert.match(page,/Salvar alterações/);
+});
+
+test('upstream redirects are blocked instead of forwarding credentials to another host',async()=>{
+  const {request,calls}=setup({fetcher:async()=>new Response(null,{status:307,headers:{Location:'https://other.example/private'}})});
+  const response=await request('/api/auth/login',{method:'POST',body:{email:'test@example.test',senha:'test-password'}});
+  assert.equal(response.status,502);assert.equal(calls.length,1);assert.match(calls[0].url,/^https:\/\/testproject\.supabase\.co\//);
+  assert.doesNotMatch(await response.text(),/other\.example/);
 });

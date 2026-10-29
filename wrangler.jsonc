@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "estoqai",
+  "name": "estqai",
   "main": "worker/index.mjs",
   "compatibility_date": "2026-10-29",
   "workers_dev": true,

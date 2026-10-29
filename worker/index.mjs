@@ -70,8 +70,13 @@ function supabase(env,fetcher) {
     if(token)headers.Authorization='Bearer '+token;
     if(data!==undefined)headers['Content-Type']='application/json';
     let response;
-    try{response=await fetcher(target.origin+path,{method:data===undefined?'GET':'POST',headers,body:data===undefined?undefined:JSON.stringify(data),redirect:'error',signal:AbortSignal.timeout(30000)});}
+    try{response=await fetcher(target.origin+path,{method:data===undefined?'GET':'POST',headers,body:data===undefined?undefined:JSON.stringify(data),redirect:'manual',signal:AbortSignal.timeout(30000)});}
     catch{throw new ApiError(503,'Não foi possível conectar ao Supabase. Nenhum dado foi salvo localmente.');}
+    // Workers aceita somente manual/follow. Nunca seguir Location com credenciais.
+    if(response.status>=300&&response.status<400){
+      console.warn('supabase_redirect_blocked',{operation:path.split('?')[0],status:response.status});
+      throw new ApiError(502,'O Supabase retornou um redirecionamento inesperado. A conexão não foi seguida.');
+    }
     let result={};
     const raw=await response.text();
     if(raw){try{result=JSON.parse(raw);}catch{throw new ApiError(502,'Resposta inválida do Supabase.');}}
